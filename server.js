@@ -91,25 +91,23 @@ app.post('/registros', async (req, res) => {
 
 
 
-app.post('/registros', async (req, res) => {
-  const { animo, agua, dormir, ejercicio, notas, id_perfil } = req.body;
+app.get('/registros/:id_perfil', async (req, res) => {
+  const { id_perfil } = req.params;
 
   try {
     const { data, error } = await supabase
       .from('registros')
-      .insert([{ animo, agua, dormir, ejercicio, notas, id_perfil }])
-      .select();
+      .select('*')
+      .eq('id_perfil', id_perfil)
+      .order('id_registro', { ascending: false });
 
     if (error) {
       return res.status(400).json({ error: error.message });
     }
 
-    res.status(201).json({
-      registro: data[0],
-      message: 'Registro diario creado exitosamente',
-    });
+    res.status(200).json({ registros: data });
   } catch (e) {
-    console.error('Error en POST /registros:', e);
+    console.error('Error en GET /registros:', e);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
