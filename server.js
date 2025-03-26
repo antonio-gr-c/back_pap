@@ -67,42 +67,53 @@ app.get('/perfil/:correo', async (req, res) => {
 });
 
 app.post('/registros', async (req, res) => {
-  try {
-    const { animo, agua, dormir, ejercicio, notas, id_perfil } = req.body;
+  const { animo, agua, dormir, ejercicio, notas, id_perfil } = req.body;
 
-    const result = await db.query(
-      `INSERT INTO registros (animo, agua, dormir, ejercicio, notas, id_perfil)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING *`,
-      [animo, agua, dormir, ejercicio, notas, id_perfil]
-    );
+  try {
+    const { data, error } = await supabase
+      .from('registros')
+      .insert([{ animo, agua, dormir, ejercicio, notas, id_perfil }])
+      .select();
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
 
     res.status(201).json({
-      registro: result.rows[0],
+      registro: data[0],
       message: 'Registro diario creado exitosamente',
     });
-  } catch (error) {
-    console.error('Error al crear registro:', error);
+  } catch (e) {
+    console.error('Error en POST /registros:', e);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
 
-app.get('/registros/:id_perfil', async (req, res) => {
-  const { id_perfil } = req.params;
+
+app.post('/registros', async (req, res) => {
+  const { animo, agua, dormir, ejercicio, notas, id_perfil } = req.body;
 
   try {
-    const result = await db.query(
-      `SELECT * FROM registros WHERE id_perfil = $1 ORDER BY id_registro DESC`,
-      [id_perfil]
-    );
+    const { data, error } = await supabase
+      .from('registros')
+      .insert([{ animo, agua, dormir, ejercicio, notas, id_perfil }])
+      .select();
 
-    res.status(200).json({ registros: result.rows });
-  } catch (error) {
-    console.error('Error al obtener registros:', error);
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.status(201).json({
+      registro: data[0],
+      message: 'Registro diario creado exitosamente',
+    });
+  } catch (e) {
+    console.error('Error en POST /registros:', e);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
+
 
 
 
