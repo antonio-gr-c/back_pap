@@ -66,6 +66,45 @@ app.get('/perfil/:correo', async (req, res) => {
   }
 });
 
+app.post('/registros', async (req, res) => {
+  try {
+    const { animo, agua, dormir, ejercicio, notas, id_perfil } = req.body;
+
+    const result = await db.query(
+      `INSERT INTO registros (animo, agua, dormir, ejercicio, notas, id_perfil)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [animo, agua, dormir, ejercicio, notas, id_perfil]
+    );
+
+    res.status(201).json({
+      registro: result.rows[0],
+      message: 'Registro diario creado exitosamente',
+    });
+  } catch (error) {
+    console.error('Error al crear registro:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+
+app.get('/registros/:id_perfil', async (req, res) => {
+  const { id_perfil } = req.params;
+
+  try {
+    const result = await db.query(
+      `SELECT * FROM registros WHERE id_perfil = $1 ORDER BY id_registro DESC`,
+      [id_perfil]
+    );
+
+    res.status(200).json({ registros: result.rows });
+  } catch (error) {
+    console.error('Error al obtener registros:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+
 
 const PORT = 3000;
 app.listen(PORT, () => {
