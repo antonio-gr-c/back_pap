@@ -13,6 +13,8 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+
+
 // Ejemplo de endpoint para probar conexión
 app.post('/perfiles', async (req, res) => {
   const { nombre, correo, telefono } = req.body;
@@ -41,23 +43,25 @@ app.post('/perfiles', async (req, res) => {
 app.get('/perfil/:correo', async (req, res) => {
   const correo = req.params.correo;
 
-  if (!correo) {
-    return res.status(400).json({ error: 'Correo es requerido en la URL.' });
-  }
-
   try {
-    const resultado = await db.query(
-      'SELECT * FROM perfiles WHERE correo = $1 LIMIT 1',
-      [correo]
-    );
+    const { data, error } = await supabase
+      .from('perfiles')
+      .select('*')
+      .eq('correo', correo)
+      .limit(1)
+      .single();
 
-    if (resultado.rows.length === 0) {
-      return res.status(404).json({ error: 'Perfil no encontrado.' });
+    if (error) {
+      return res.status(400).json({ error: error.message });
     }
 
-    res.status(200).json({ perfil: resultado.rows[0] });
-  } catch (e) {
-    console.error('Error al consultar perfil:', e);
+    if (!data) {
+      return res.status(404).json({ error: 'Perfil no encontrado' });
+    }
+
+    res.status(200).json({ perfil: data });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
