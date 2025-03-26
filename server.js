@@ -38,6 +38,31 @@ app.post('/perfiles', async (req, res) => {
 });
 
 
+app.get('/perfil/:correo', async (req, res) => {
+  const correo = req.params.correo;
+
+  if (!correo) {
+    return res.status(400).json({ error: 'Correo es requerido en la URL.' });
+  }
+
+  try {
+    const resultado = await db.query(
+      'SELECT * FROM perfiles WHERE correo = $1 LIMIT 1',
+      [correo]
+    );
+
+    if (resultado.rows.length === 0) {
+      return res.status(404).json({ error: 'Perfil no encontrado.' });
+    }
+
+    res.status(200).json({ perfil: resultado.rows[0] });
+  } catch (e) {
+    console.error('Error al consultar perfil:', e);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
